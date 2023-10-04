@@ -19,7 +19,7 @@ import { Role } from 'src/decorators/role.decorator';
 
 @Controller('home')
 export class HomeController {
-  constructor(private readonly homeService: HomeService) { }
+  constructor(private readonly homeService: HomeService) {}
   @Get()
   getHomes(
     @Query('city') city?: string,
@@ -30,9 +30,9 @@ export class HomeController {
     const price =
       minPrice || maxPrice
         ? {
-          ...(minPrice && { gte: parseFloat(minPrice) }),
-          ...(maxPrice && { lte: parseFloat(maxPrice) }),
-        }
+            ...(minPrice && { gte: parseFloat(minPrice) }),
+            ...(maxPrice && { lte: parseFloat(maxPrice) }),
+          }
         : undefined;
     const filters = {
       ...(city && { city }),
@@ -51,7 +51,7 @@ export class HomeController {
   @Role(UserType.ADMIN)
   @Post()
   createHome(@Body() body: CreateHomeDto, @User() user: UserInfo) {
-    return "Hello"
+    return 'Hello';
     // return this.homeService.createHome(body, user);
   }
 

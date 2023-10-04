@@ -1,46 +1,51 @@
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import * as jwt from 'jsonwebtoken';
-import { PrismaService } from "src/prisma/prisma.service";
+import { PrismaService } from 'src/prisma/prisma.service';
 
 export interface JWTPayload {
-    name: string;
-    id: number;
-    iat: number;
-    exp: number;
-  }
+  name: string;
+  id: number;
+  iat: number;
+  exp: number;
+}
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-    constructor(private readonly relector: Reflector, private readonly prismaService: PrismaService) { }
-    async canActivate(context: ExecutionContext) {
-        const roles = this.relector.getAllAndOverride('roles', [
-            context.getHandler(),
-            context.getClass()
-        ]);
+  constructor(
+    private readonly relector: Reflector,
+    private readonly prismaService: PrismaService,
+  ) {}
+  async canActivate(context: ExecutionContext) {
+    const roles = this.relector.getAllAndOverride('roles', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
-        if (roles?.length) {
-            const request = context.switchToHttp().getRequest();
-            const token = request?.headers?.authorization?.split(' ')[1];
-            try {
-                const payload = (await jwt.verify(token, process.env.JWT_TOKEN)) as JWTPayload;
+    if (roles?.length) {
+      const request = context.switchToHttp().getRequest();
+      const token = request?.headers?.authorization?.split(' ')[1];
+      try {
+        const payload = (await jwt.verify(
+          token,
+          process.env.JWT_TOKEN,
+        )) as JWTPayload;
 
-                const user = await this.prismaService.user.findUnique({
-                    where: {
-                        id: payload.id
-                    }
-                });
+        const user = await this.prismaService.user.findUnique({
+          where: {
+            id: payload.id,
+          },
+        });
 
-                if(!user) return false;
+        if (!user) return false;
 
-                if(roles.includes(user.user_type)) return true;
-                console.log({user});
-                
-                return false;
-            } catch (error) {
-                return false;
-            }
-        }
-        return true;
+        if (roles.includes(user.user_type)) return true;
+
+        return false;
+      } catch (error) {
+        return false;
+      }
     }
+    return true;
+  }
 }
